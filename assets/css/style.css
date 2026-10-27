@@ -1,0 +1,346 @@
+/* =========================================
+   SIBAHLE DESIGN SYSTEM - AFRICAN VIBE
+   ========================================= */
+
+:root {
+    --primary-gold: #C49B63;
+    --primary-gold-hover: #a8824f;
+    --deep-chocolate: #3b2314;
+    --terracotta: #8B4513;
+    --cream-bg: #FDFBF7;
+    --african-green: #2E5C31;
+    --text-dark: #2C1E16;
+    --text-muted: #7A6B63;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--cream-bg);
+    color: var(--text-dark);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6, .brand-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    color: var(--deep-chocolate);
+}
+
+/* Top Bar & Navigation */
+.top-bar {
+    background-color: var(--deep-chocolate) !important;
+    border-bottom: 2px solid var(--primary-gold);
+}
+
+.navbar {
+    background-color: var(--cream-bg) !important;
+    border-bottom: 1px solid rgba(196, 155, 99, 0.2);
+}
+
+.brand-name {
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    color: var(--deep-chocolate);
+}
+
+.brand-tagline {
+    font-size: 0.75rem;
+    color: var(--primary-gold);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: -5px;
+}
+
+.nav-link {
+    color: var(--deep-chocolate) !important;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--primary-gold) !important;
+}
+
+/* African Pattern Border */
+.pattern-border {
+    height: 15px;
+    background-image: repeating-linear-gradient(
+        45deg,
+        var(--deep-chocolate),
+        var(--deep-chocolate) 10px,
+        var(--primary-gold) 10px,
+        var(--primary-gold) 20px,
+        var(--terracotta) 20px,
+        var(--terracotta) 30px
+    );
+}
+
+/* Buttons */
+.btn-gold {
+    background-color: var(--primary-gold);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 30px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.btn-gold:hover {
+    background-color: var(--primary-gold-hover);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(196, 155, 99, 0.4);
+}
+
+.btn-outline-dark {
+    border-color: var(--deep-chocolate);
+    color: var(--deep-chocolate);
+    border-radius: 30px;
+    padding: 10px 24px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.btn-outline-dark:hover {
+    background-color: var(--deep-chocolate);
+    color: var(--cream-bg);
+}
+
+/* Hero Section */
+.hero-section {
+    background-color: var(--cream-bg);
+    background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><path d="M0 100 L50 0 L100 100 Z" fill="%23f4eee4" opacity="0.4"/></svg>');
+    padding: 80px 0;
+}
+
+/* Category Cards */
+.category-card .card {
+    background-color: white;
+    border: 1px solid rgba(196, 155, 99, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.category-card:hover .card {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(59, 35, 20, 0.08) !important;
+    border-color: var(--primary-gold);
+}
+
+/* Product Cards */
+.product-card {
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(196, 155, 99, 0.15) !important;
+    background-color: white;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(59, 35, 20, 0.1) !important;
+}
+
+.product-img {
+    height: 250px;
+    object-fit: cover;
+}
+
+.price {
+    color: var(--terracotta);
+    font-size: 1.1rem;
+}
+
+/* Trust Badges / Features */
+.trust-badge {
+    color: var(--deep-chocolate);
+    text-align: center;
+}
+
+.trust-badge i {
+    color: var(--primary-gold);
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+/* Custom Section Backgrounds */
+.bg-cream { background-color: var(--cream-bg); }
+.bg-sand { background-color: #f5efe6; }
+.bg-african-dark { background-color: var(--deep-chocolate); color: var(--cream-bg); }
+.text-gold { color: var(--primary-gold) !important; }
+
+/* Footer */
+footer {
+    background-color: var(--deep-chocolate);
+    color: var(--cream-bg);
+}
+footer a { color: var(--primary-gold); text-decoration: none; }
+footer a:hover { color: white; }
+
+/* Admin pages use the same palette with a compact, responsive navigation shell. */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    flex: 0 0 15.625rem;
+    min-height: 100vh;
+    padding: 1.25rem 1rem;
+    background-color: var(--deep-chocolate);
+    color: var(--cream-bg);
+}
+
+.admin-sidebar-brand {
+    display: block;
+    margin-bottom: 1.5rem;
+    color: var(--cream-bg);
+    text-decoration: none;
+}
+
+.admin-brand-name {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.admin-brand-label {
+    color: var(--primary-gold);
+    font-size: 0.8rem;
+}
+
+.admin-sidebar .nav-link {
+    color: var(--cream-bg) !important;
+    font-size: 0.9rem;
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+.admin-sidebar .nav-link:hover,
+.admin-sidebar .nav-link.active {
+    color: var(--deep-chocolate) !important;
+    background-color: var(--primary-gold);
+}
+
+.admin-sidebar .admin-store-link {
+    margin-top: 1rem;
+}
+
+.admin-main {
+    flex: 1;
+    min-width: 0;
+    padding: 2rem;
+}
+
+.admin-page-header {
+    margin-bottom: 1.5rem;
+}
+
+.admin-summary-card,
+.admin-table-card {
+    border: 0;
+    box-shadow: 0 0.25rem 1rem rgba(59, 35, 20, 0.08);
+}
+
+.admin-summary-icon {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    place-items: center;
+    border-radius: 50%;
+    background-color: var(--cream-bg);
+    font-size: 1.25rem;
+}
+
+.admin-table-card .card-header {
+    padding: 1rem;
+    border: 0;
+    background-color: white;
+}
+
+.hero-subtitle {
+    font-size: 0.5em;
+    letter-spacing: 3px;
+}
+
+.hero-tagline {
+    letter-spacing: 2px;
+}
+
+.hero-motto {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.hero-image {
+    border: 5px solid white;
+}
+
+.trust-section {
+    border-top: 1px solid var(--primary-gold);
+    border-bottom: 1px solid var(--primary-gold);
+}
+
+.section-divider {
+    width: 3.75rem;
+    height: 0.1875rem;
+    margin: 1rem auto 0;
+    background-color: var(--primary-gold);
+}
+
+.product-category {
+    letter-spacing: 1px;
+}
+
+.brand-emblem {
+    width: 15.625rem;
+    height: 15.625rem;
+    border: 0.5rem solid var(--deep-chocolate);
+    background-color: var(--primary-gold);
+}
+
+.brand-quote {
+    color: var(--primary-gold);
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+}
+
+.newsletter-form {
+    max-width: 31.25rem;
+}
+
+.cart-quantity-controls {
+    min-width: 7rem;
+    max-width: 8.25rem;
+}
+
+.success-card {
+    max-width: 40rem;
+}
+
+@media (max-width: 767.98px) {
+    .admin-layout {
+        flex-direction: column;
+    }
+
+    .admin-sidebar {
+        flex-basis: auto;
+        min-height: auto;
+    }
+
+    .admin-sidebar .nav {
+        flex-direction: row !important;
+        flex-wrap: wrap;
+    }
+
+    .admin-sidebar .admin-store-link {
+        margin-top: 0;
+    }
+
+    .admin-main {
+        padding: 1.25rem;
+    }
+}
