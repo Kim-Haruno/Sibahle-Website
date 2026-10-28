@@ -13,7 +13,7 @@ $stmt->execute([$slug]);
 $product = $stmt->fetch();
 
 if (!$product) {
-    die("<div class='container py-5 text-center'><h2>Product not found.</h2><a href='shop.php'>Return to shop</a></div>");
+    die("<div class='container py-5 text-center'><h2>Product not found.</h2><a href='shop.php' class='btn btn-gold mt-3'>Return to shop</a></div>");
 }
 
 $pageTitle = $product['product_name'] . ' | ' . SITE_NAME;
@@ -43,7 +43,7 @@ include 'includes/header.php';
 
         <div class="row g-5">
             <div class="col-md-6">
-                <!-- Main Image (Added ID for JS thumbnail swapping) -->
+                <!-- Main Image -->
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
                     <img src="assets/images/products/<?= $product['image_url'] ?: 'placeholder.jpg' ?>" 
                          id="mainImage" 
@@ -100,7 +100,6 @@ include 'includes/header.php';
                             <input type="number" id="qty" class="form-control text-center" value="1" min="1" max="<?= $product['stock_quantity'] ?>">
                             <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('qty').stepUp()">+</button>
                         </div>
-                        <!-- Added data-main-stock to track the overall product stock -->
                         <button type="button" class="btn btn-gold btn-lg flex-grow-1 add-to-cart-btn" 
                                 data-id="<?= $product['product_id'] ?>" 
                                 data-main-stock="<?= (int)$product['stock_quantity'] ?>">
@@ -112,6 +111,18 @@ include 'includes/header.php';
         </div>
     </div>
 </section>
+
+<!-- Toast Notification Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+    <div id="cartToast" class="toast align-items-center text-white bg-success border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-6">
+                <i class="fas fa-check-circle me-2"></i> Added to cart successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -166,24 +177,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const productId = this.getAttribute('data-id');
         const qty = document.getElementById('qty').value;
-        const variantId = variantSelect ? variantSelect.value : null;
+        
+        // Ensure we pass 'null' as a string if there are no variants
+        const variantId = variantSelect ? variantSelect.value : 'null';
 
-        let bodyData = `action=add&product_id=${productId}&quantity=${qty}`;
-        if (variantId) bodyData += `&variant_id=${variantId}`;
+        let bodyData = `action=add&product_id=${productId}&quantity=${qty}&variant_id=${variantId}`;
+
+        const originalText = addToCartBtn.innerHTML;
+        addToCartBtn.innerHTML = 'Adding...';
+        addToCartBtn.disabled = true;
 
         fetch('ajax_cart.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: bodyData
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Server status: " + res.status);
+            return res.json();
+        })
         .then(data => {
             if(data.success) {
-                alert('Added to cart successfully!');
-                location.reload();
+                // Show the Bootstrap Toast
+                const toastEl = document.getElementById('cartToast');
+                const toast = new bootstrap.Toast(toastEl, { delay: 1500 });
+                toast.show();
+                
+                // Wait 1.5 seconds so the user can read it, then reload to update the cart count
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
             } else {
-                alert(data.message || 'Could not add to cart.');
+                alert('Error: ' + (data.message || 'Unknown error'));
+                addToCartBtn.innerHTML = originalText;
+                addToCartBtn.disabled = false;
             }
+        })
+        .catch(error => {
+            alert('Network Error: ' + error.message);
+            addToCartBtn.innerHTML = originalText;
+            addToCartBtn.disabled = false;
         });
     });
 });

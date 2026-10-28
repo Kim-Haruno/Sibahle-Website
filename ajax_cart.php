@@ -1,156 +1,82 @@
 <?php
 require_once 'includes/config.php';
-$pageTitle = 'Shopping Cart | ' . SITE_NAME;
+header('Content-Type: application/json');
 
-// Fetch cart items
-if (isLoggedIn()) {
-    $stmt = $pdo->prepare("SELECT c.*, p.product_name, p.base_price, p.sale_price, p.image_url, p.stock_quantity,
-                           v.variant_type, v.variant_value, v.price_adjustment
-                           FROM cart c 
-                           JOIN products p ON c.product_id = p.product_id 
-                           LEFT JOIN product_variants v ON c.variant_id = v.variant_id 
-                           WHERE c.user_id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-} else {
-    $stmt = $pdo->prepare("SELECT c.*, p.product_name, p.base_price, p.sale_price, p.image_url, p.stock_quantity,
-                           v.variant_type, v.variant_value, v.price_adjustment
-                           FROM cart c 
-                           JOIN products p ON c.product_id = p.product_id 
-                           LEFT JOIN product_variants v ON c.variant_id = v.variant_id 
-                           WHERE c.session_id = ?");
-    $stmt->execute([$_SESSION['cart_session_id']]);
-}
-$cartItems = $stmt->fetchAll();
+// Ensure we only process POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
 
-// Calculate totals
-$subtotal = 0;
-foreach ($cartItems as $item) {
-    $price = ($item['sale_price'] ?: $item['base_price']) + ($item['price_adjustment'] ?? 0);
-    $subtotal += $price * $item['quantity'];
-}
-$shipping = ($subtotal >= 500 || $subtotal == 0) ? 0 : 65;
-$total = $subtotal + $shipping;
-
-include 'includes/header.php';
-?>
-
-<div class="container py-5">
-    <h2 class="mb-4 fw-bold">Shopping Cart</h2>
-    
-    <?php if (empty($cartItems)): ?>
-        <div class="card border-0 shadow-sm text-center py-5">
-            <div class="card-body">
-                <i class="fas fa-shopping-bag fa-4x text-muted mb-4"></i>
-                <h4>Your cart is empty</h4>
-                <p class="text-muted">Looks like you haven't added anything yet.</p>
-                <a href="shop.php" class="btn btn-gold mt-3">Start Shopping</a>
-            </div>
-        </div>
-    <?php else: ?>
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm rounded-4">
-                    <div class="card-body p-0">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4">Product</th>
-                                    <th>Price</th>
-                                    <th>Quantity</th>
-                                    <th>Total</th>
-                                    <th class="pe-4"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($cartItems as $item): 
-                                    $price = ($item['sale_price'] ?: $item['base_price']) + ($item['price_adjustment'] ?? 0);
-                                ?>
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center">
-                                            <img src="assets/images/products/<?= $item['image_url'] ?: 'placeholder.jpg' ?>" 
-                                                 width="70" height="70" class="rounded me-3 object-fit-cover shadow-sm">
-                                            <div>
-                                                <h6 class="mb-0 fw-bold"><?= htmlspecialchars($item['product_name']) ?></h6>
-                                                <?php if ($item['variant_value']): ?>
-                                                <small class="text-muted"><?= htmlspecialchars($item['variant_type']) ?>: <?= htmlspecialchars($item['variant_value']) ?></small>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><?= formatPrice($price) ?></td>
-                                    <td>
-                                        <div class="input-group input-group-sm" style="width: 110px;">
-                                            <button class="btn btn-outline-secondary qty-btn" data-action="decrease" data-cart-id="<?= $item['cart_id'] ?>">-</button>
-                                            <input type="text" class="form-control text-center qty-input" value="<?= $item['quantity'] ?>" readonly>
-                                            <button class="btn btn-outline-secondary qty-btn" data-action="increase" data-cart-id="<?= $item['cart_id'] ?>">+</button>
-                                        </div>
-                                    </td>
-                                    <td class="fw-bold text-gold"><?= formatPrice($price * $item['quantity']) ?></td>
-                                    <td class="pe-4 text-end">
-                                        <button class="btn btn-sm btn-outline-danger remove-item" data-cart-id="<?= $item['cart_id'] ?>">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    try {
+        if ($action === 'add') {
+            $productId = (int)$_POST['product_id'];
+            $qty = (int)$_POST['quantity'];
             
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4">
-                    <div class="card-body p-4">
-                        <h4 class="mb-4 fw-bold">Order Summary</h4>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Subtotal</span>
-                            <span class="fw-bold"><?= formatPrice($subtotal) ?></span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
-                            <span class="text-muted">Shipping</span>
-                            <span class="fw-bold"><?= $shipping === 0 ? 'Free' : formatPrice($shipping) ?></span>
-                        </div>
-                        <?php if ($shipping > 0): ?>
-                        <small class="text-muted d-block mb-3"><i class="fas fa-info-circle me-1"></i> Add <?= formatPrice(500 - $subtotal) ?> more for free delivery!</small>
-                        <?php endif; ?>
-                        <div class="d-flex justify-content-between mb-4">
-                            <span class="fs-5 fw-bold">Total</span>
-                            <span class="fs-4 fw-bold text-gold"><?= formatPrice($total) ?></span>
-                        </div>
-                        <a href="checkout.php" class="btn btn-gold w-100 py-3 fs-5">Proceed to Checkout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
-</div>
+            // Handle the variant_id safely
+            $variantId = null;
+            if (isset($_POST['variant_id']) && $_POST['variant_id'] !== '' && $_POST['variant_id'] !== 'null') {
+                $variantId = (int)$_POST['variant_id'];
+            }
+            
+            // Check if the item (with this specific variant) already exists in the cart
+            if (isLoggedIn()) {
+                $sql = "SELECT * FROM cart WHERE user_id = ? AND product_id = ?";
+                $params = [$_SESSION['user_id'], $productId];
+            } else {
+                $sql = "SELECT * FROM cart WHERE session_id = ? AND product_id = ?";
+                $params = [$_SESSION['cart_session_id'], $productId];
+            }
 
-<script>
-// Handle quantity updates and item removal via AJAX
-document.querySelectorAll('.qty-btn, .remove-item').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const cartId = this.getAttribute('data-cart-id');
-        const action = this.getAttribute('data-action') || 'remove';
-        const input = this.parentElement.querySelector('.qty-input');
-        let currentQty = input ? parseInt(input.value) : 0;
+            // If a variant is selected, add it to the query, otherwise look for NULL
+            if ($variantId !== null) {
+                $sql .= " AND variant_id = ?";
+                $params[] = $variantId;
+            } else {
+                $sql .= " AND variant_id IS NULL";
+            }
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            
+            if ($stmt->rowCount() > 0) {
+                // Update existing row quantity
+                $existing = $stmt->fetch();
+                $update = $pdo->prepare("UPDATE cart SET quantity = quantity + ? WHERE cart_id = ?");
+                $update->execute([$qty, $existing['cart_id']]);
+            } else {
+                // Insert new row
+                if (isLoggedIn()) {
+                    $insert = $pdo->prepare("INSERT INTO cart (user_id, product_id, variant_id, quantity) VALUES (?, ?, ?, ?)");
+                    $insert->execute([$_SESSION['user_id'], $productId, $variantId, $qty]);
+                } else {
+                    $insert = $pdo->prepare("INSERT INTO cart (session_id, product_id, variant_id, quantity) VALUES (?, ?, ?, ?)");
+                    $insert->execute([$_SESSION['cart_session_id'], $productId, $variantId, $qty]);
+                }
+            }
+            echo json_encode(['success' => true]);
+            
+        } elseif ($action === 'update') {
+            $cartId = (int)$_POST['cart_id'];
+            $qty = (int)$_POST['quantity'];
+            
+            $stmt = $pdo->prepare("UPDATE cart SET quantity = ? WHERE cart_id = ?");
+            $stmt->execute([$qty, $cartId]);
+            echo json_encode(['success' => true]);
+            
+        } elseif ($action === 'remove') {
+            $cartId = (int)$_POST['cart_id'];
+            
+            $stmt = $pdo->prepare("DELETE FROM cart WHERE cart_id = ?");
+            $stmt->execute([$cartId]);
+            echo json_encode(['success' => true]);
+            
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid action.']);
+        }
         
-        let newQty = currentQty;
-        if (action === 'increase') newQty++;
-        if (action === 'decrease' && currentQty > 1) newQty--;
-
-        fetch('ajax_cart.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: `action=update&cart_id=${cartId}&quantity=${newQty}`
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) location.reload();
-        });
-    });
-});
-</script>
-
-<?php include 'includes/footer.php'; ?>
+    } catch (PDOException $e) {
+        // If the database fails, return the exact error so JavaScript can display it
+        echo json_encode(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
+    }
+    exit;
+}
+?>

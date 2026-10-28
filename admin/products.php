@@ -57,8 +57,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $action = isset($_POST['action']) && is_string($_POST['action']) ? $_POST['action'] : '';
 
+        // --- Handle Add Category ---
+        if ($action === 'add_category') {
+            $cat_name = trim($_POST['category_name']);
+            $cat_slug = strtolower(preg_replace('/[^a-zA-Z0-9-]+/', '-', $cat_name));
+            
+            if (empty($cat_name)) {
+                $errors[] = 'Category name cannot be empty.';
+            } else {
+                $check = $pdo->prepare("SELECT category_id FROM categories WHERE category_name = ?");
+                $check->execute([$cat_name]);
+                if ($check->rowCount() > 0) {
+                    $errors[] = 'That category already exists.';
+                } else {
+                    $stmt = $pdo->prepare("INSERT INTO categories (category_name, category_slug) VALUES (?, ?)");
+                    $stmt->execute([$cat_name, $cat_slug]);
+                    $redirect_with_notice('Category added successfully.');
+                }
+            }
+        }
+        // --- End Add Category ---
+
         // --- Handle Variant Actions ---
-        if ($action === 'add_variant') {
+        elseif ($action === 'add_variant') {
             $v_product_id = (int)$_POST['v_product_id'];
             $v_type = $_POST['v_type'];
             $v_value = trim($_POST['v_value']);
@@ -187,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // --- Handle Main Image Upload ---
-            $uploaded_image = $form_data['image_url']; // Keep old image by default if editing
+            $uploaded_image = $form_data['image_url'];
             
             if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
                 $file_tmp = $_FILES['product_image']['tmp_name'];
@@ -196,16 +217,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $allowed = ['jpg', 'jpeg', 'png', 'webp'];
 
                 if (in_array($file_ext, $allowed)) {
-                    // Generate unique name
                     $uploaded_image = uniqid('prod_') . '.' . $file_ext;
                     $upload_dir = '../assets/images/products/';
                     
-                    // Create folder if it doesn't exist
                     if (!is_dir($upload_dir)) {
                         mkdir($upload_dir, 0777, true);
                     }
                     
-                    // Move the file
                     if (!move_uploaded_file($file_tmp, $upload_dir . $uploaded_image)) {
                         $errors[] = 'Failed to save the uploaded image. Check folder permissions.';
                     }
@@ -259,7 +277,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $product_id,
                         ]);
                         
-                        // Save gallery images for EXISTING product
                         if (!empty($gallery_files)) {
                             $img_stmt = $pdo->prepare("INSERT INTO product_images (product_id, image_url) VALUES (?, ?)");
                             foreach ($gallery_files as $img) {
@@ -299,7 +316,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $uploaded_image !== '' ? $uploaded_image : null,
                     ]);
                     
-                    // Save gallery images for NEW product
                     if (!empty($gallery_files)) {
                         $new_product_id = $pdo->lastInsertId();
                         $img_stmt = $pdo->prepare("INSERT INTO product_images (product_id, image_url) VALUES (?, ?)");
@@ -365,6 +381,27 @@ $products = $products_stmt->fetchAll();
                 </ul>
             </div>
         <?php endif; ?>
+
+        <!-- Add Category Form -->
+        <section class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h2 class="h5 mb-0">Add New Category</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" class="row g-3 align-items-end">
+                    <input type="hidden" name="csrf_token" value="<?= escape_html($_SESSION['csrf_token']) ?>">
+                    <input type="hidden" name="action" value="add_category">
+                    
+                    <div class="col-md-8">
+                        <label class="form-label" for="category-name">Category Name (e.g., Handmade Candles)</label>
+                        <input class="form-control" id="category-name" name="category_name" type="text" required placeholder="Enter category name">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-gold w-100" type="submit">Add Category</button>
+                    </div>
+                </form>
+            </div>
+        </section>
 
         <section class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
